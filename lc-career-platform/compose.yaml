@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:17
+    container_name: lc-career-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lc_career
+      POSTGRES_USER: lc_career_user
+      POSTGRES_PASSWORD: development_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U lc_career_user -d lc_career"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
