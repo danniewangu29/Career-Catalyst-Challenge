@@ -57,6 +57,7 @@ export default function RegisterPage() {
           last_name: lastName.trim(),
           email: normalizedEmail,
           password,
+          confirm_password: confirmPassword,
         }),
       });
 
