@@ -1,26 +1,355 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f7f8;
+  --foreground: #102a43;
+
+  --otter-navy: #102a43;
+  --otter-navy-dark: #071b2b;
+  --otter-blue: #16697a;
+  --otter-teal: #1f9d91;
+  --otter-teal-light: #dff5f1;
+  --otter-coral: #ef8354;
+  --otter-gold: #f4b942;
+  --otter-cream: #fffaf0;
+
+  --surface: #ffffff;
+  --surface-muted: #eef4f5;
+  --border: #d8e3e8;
+  --text-muted: #5d7280;
+
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #b91c1c;
+
+  --shadow-soft:
+    0 12px 30px rgba(16, 42, 67, 0.08);
+  --shadow-card:
+    0 18px 50px rgba(16, 42, 67, 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(
+      circle at 8% 2%,
+      rgba(31, 157, 145, 0.1),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 95% 15%,
+      rgba(22, 105, 122, 0.09),
+      transparent 32rem
+    ),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(31, 157, 145, 0.22);
+  color: var(--otter-navy-dark);
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(31, 157, 145, 0.28);
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  color: var(--otter-navy-dark);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8a9da8;
+}
+
+textarea {
+  resize: vertical;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+.otter-page {
+  width: 100%;
+  max-width: 90rem;
+  margin-inline: auto;
+}
+
+.otter-card {
+  border: 1px solid rgba(216, 227, 232, 0.95);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow-soft);
+}
+
+.otter-card-hover {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.otter-card-hover:hover {
+  transform: translateY(-3px);
+  border-color: rgba(31, 157, 145, 0.32);
+  box-shadow: var(--shadow-card);
+}
+
+.otter-gradient {
+  background:
+    linear-gradient(
+      135deg,
+      var(--otter-navy-dark) 0%,
+      var(--otter-navy) 46%,
+      var(--otter-blue) 100%
+    );
+}
+
+.otter-gradient-soft {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(223, 245, 241, 0.92),
+      rgba(238, 244, 245, 0.82)
+    );
+}
+
+.otter-grid-pattern {
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px
+    );
+  background-size: 32px 32px;
+}
+
+.otter-heading {
+  color: var(--otter-navy-dark);
+  letter-spacing: -0.035em;
+}
+
+.otter-muted {
+  color: var(--text-muted);
+}
+
+.otter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  background: var(--otter-teal-light);
+  color: #116c64;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.otter-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  border-radius: 0.8rem;
+  border: 1px solid transparent;
+  padding-inline: 1.1rem;
+  background: var(--otter-teal);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow:
+    0 8px 20px rgba(31, 157, 145, 0.22);
+}
+
+.otter-button-primary:hover {
+  background: #17877d;
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 26px rgba(31, 157, 145, 0.28);
+}
+
+.otter-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--border);
+  padding-inline: 1.1rem;
+  background: white;
+  color: var(--otter-navy);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.otter-button-secondary:hover {
+  border-color: rgba(31, 157, 145, 0.45);
+  background: var(--otter-teal-light);
+}
+
+.otter-input {
+  width: 100%;
+  border: 1px solid #cbd8de;
+  border-radius: 0.8rem;
+  background: white;
+  padding: 0.72rem 0.9rem;
+  color: var(--otter-navy-dark);
+  outline: none;
+}
+
+.otter-input:focus {
+  border-color: var(--otter-teal);
+  box-shadow: 0 0 0 4px rgba(31, 157, 145, 0.12);
+}
+
+.otter-section-title {
+  color: var(--otter-navy-dark);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.otter-stat {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.otter-empty-state {
+  border: 1px dashed #b9cbd3;
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(223, 245, 241, 0.5)
+    );
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.otter-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #b8cbd2 transparent;
+}
+
+.otter-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.otter-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.otter-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b8cbd2;
+}
+
+@keyframes otter-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes otter-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.otter-float {
+  animation: otter-float 5s ease-in-out infinite;
+}
+
+.otter-fade-up {
+  animation: otter-fade-up 420ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

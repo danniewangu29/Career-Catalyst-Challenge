@@ -12,13 +12,34 @@ class ProficiencyLevel(str, Enum):
     ADVANCED = "advanced"
 
 
-class SkillCreate(BaseModel):
+class SkillBase(BaseModel):
     name: str = Field(min_length=2, max_length=100)
-    proficiency_level: ProficiencyLevel
+    proficiency_level: ProficiencyLevel = ProficiencyLevel.BEGINNER
     development_goal: bool = False
+    notes: str | None = Field(default=None, max_length=2000)
 
 
-class SkillResponse(SkillCreate):
+class SkillCreate(SkillBase):
+    pass
+
+
+class SkillUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=100)
+    proficiency_level: ProficiencyLevel | None = None
+    development_goal: bool | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class SkillSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    proficiency_level: ProficiencyLevel
+    development_goal: bool
+
+
+class SkillResponse(SkillBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID

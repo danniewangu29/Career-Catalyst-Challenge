@@ -2,28 +2,37 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
+from app.api.dependencies.auth import get_current_user
 from app.core.database import get_db
 from app.models.experience import Experience
+from app.models.skill import Skill
+from app.models.user import User
 from app.schemas.experience import (
     ExperienceCreate,
     ExperienceResponse,
     ExperienceUpdate,
 )
 
-router = APIRouter(prefix="/experiences", tags=["Experiences"])
-
-DEMO_STUDENT_ID = UUID("11111111-1111-1111-1111-111111111111")
+router = APIRouter(
+    prefix="/experiences",
+    tags=["Experiences"],
+)
 
 
 def get_owned_experience(
     db: Session,
     experience_id: UUID,
+    student_id: UUID,
 ) -> Experience:
-    statement = select(Experience).where(
-        Experience.id == experience_id,
-        Experience.student_id == DEMO_STUDENT_ID,
+    statement = (
+        select(Experience)
+        .options(selectinload(Experience.skills))
+        .where(
+            Experience.id == experience_id,
+            Experience.student_id == student_id,
+        )
     )
 
     experience = db.scalar(statement)
@@ -31,23 +40,57 @@ def get_owned_experience(
     if experience is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Experience not found",
+            detail="Experience not found.",
         )
 
     return experience
 
 
-@router.get("", response_model=list[ExperienceResponse])
+def get_owned_skills(
+    db: Session,
+    skill_ids: list[UUID],
+    student_id: UUID,
+) -> list[Skill]:
+    if not skill_ids:
+        return []
+
+    unique_ids = list(set(skill_ids))
+
+    statement = select(Skill).where(
+        Skill.id.in_(unique_ids),
+        Skill.student_id == student_id,
+    )
+
+    skills = list(db.scalars(statement).all())
+
+    if len(skills) != len(unique_ids):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "One or more selected skills do not exist "
+                "or are not accessible."
+            ),
+        )
+
+    return skills
+
+
+@router.get(
+    "",
+    response_model=list[ExperienceResponse],
+)
 def list_experiences(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> list[Experience]:
     statement = (
         select(Experience)
-        .where(Experience.student_id == DEMO_STUDENT_ID)
+        .options(selectinload(Experience.skills))
+        .where(Experience.student_id == current_user.id)
         .order_by(Experience.created_at.desc())
     )
 
-    return list(db.scalars(statement).all())
+    return list(db.scalars(statement).unique().all())
 
 
 @router.post(
@@ -58,19 +101,33 @@ def list_experiences(
 def create_experience(
     payload: ExperienceCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Experience:
-    values = payload.model_dump(exclude={"skill_ids"})
+    selected_skills = get_owned_skills(
+        db,
+        payload.skill_ids,
+        current_user.id,
+    )
+
+    experience_data = payload.model_dump(
+        exclude={"skill_ids"},
+    )
 
     experience = Experience(
-        student_id=DEMO_STUDENT_ID,
-        **values,
+        student_id=current_user.id,
+        **experience_data,
     )
+
+    experience.skills = selected_skills
 
     db.add(experience)
     db.commit()
-    db.refresh(experience)
 
-    return experience
+    return get_owned_experience(
+        db,
+        experience.id,
+        current_user.id,
+    )
 
 
 @router.get(
@@ -80,8 +137,13 @@ def create_experience(
 def get_experience(
     experience_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Experience:
-    return get_owned_experience(db, experience_id)
+    return get_owned_experience(
+        db,
+        experience_id,
+        current_user.id,
+    )
 
 
 @router.patch(
@@ -92,13 +154,26 @@ def update_experience(
     experience_id: UUID,
     payload: ExperienceUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Experience:
-    experience = get_owned_experience(db, experience_id)
-
-    updates = payload.model_dump(
-        exclude_unset=True,
-        exclude={"skill_ids"},
+    experience = get_owned_experience(
+        db,
+        experience_id,
+        current_user.id,
     )
+
+    updates = payload.model_dump(exclude_unset=True)
+
+    if "skill_ids" in updates:
+        skill_ids = updates.pop("skill_ids")
+
+        selected_skills = get_owned_skills(
+            db,
+            skill_ids,
+            current_user.id,
+        )
+
+        experience.skills = selected_skills
 
     for field, value in updates.items():
         setattr(experience, field, value)
@@ -113,13 +188,16 @@ def update_experience(
     ):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="End date cannot be before start date.",
+            detail="The end date cannot be before the start date.",
         )
 
     db.commit()
-    db.refresh(experience)
 
-    return experience
+    return get_owned_experience(
+        db,
+        experience.id,
+        current_user.id,
+    )
 
 
 @router.delete(
@@ -129,10 +207,17 @@ def update_experience(
 def delete_experience(
     experience_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Response:
-    experience = get_owned_experience(db, experience_id)
+    experience = get_owned_experience(
+        db,
+        experience_id,
+        current_user.id,
+    )
 
     db.delete(experience)
     db.commit()
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return Response(
+        status_code=status.HTTP_204_NO_CONTENT,
+    )

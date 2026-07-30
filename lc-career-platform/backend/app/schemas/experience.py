@@ -3,6 +3,7 @@ from enum import Enum
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from app.schemas.skill import SkillSummary
 
 
 class ExperienceType(str, Enum):
@@ -71,3 +72,4 @@ class ExperienceResponse(ExperienceBase):
     student_id: UUID
     created_at: datetime
     updated_at: datetime
+    skills: list[SkillSummary] = Field(default_factory=list)

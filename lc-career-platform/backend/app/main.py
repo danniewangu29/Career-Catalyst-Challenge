@@ -1,12 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.database import Base, engine
-import app.models
 
 from app.api.routes.experiences import router as experiences_router
+from app.api.routes.skills import router as skills_router
+from app.api.routes.network_connections import (
+    router as network_connections_router,
+)
+from app.api.routes.career_tasks import router as career_tasks_router
+from app.api.routes.auth import router as auth_router
+from app.core.config import settings
 
-Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title="L&C Career Platform API",
@@ -16,13 +21,17 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[settings.frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(experiences_router, prefix="/api")
+app.include_router(skills_router, prefix="/api")
+app.include_router(network_connections_router, prefix="/api")
+app.include_router(career_tasks_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 
 @app.get("/")
